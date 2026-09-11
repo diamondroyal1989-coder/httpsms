@@ -2045,7 +2045,11 @@ func logger(skipFrameCount int) telemetry.Logger {
 }
 
 func logDriver(skipFrameCount int) *zerodriver.Logger {
-	if isLocal() {
+	// Axiom requires AXIOM_TOKEN (read internally by the axiom-go client).
+	// Self-hosted deployments without an Axiom account would otherwise crash
+	// at boot via axiomLogger's log.Fatal — fall back to the console logger
+	// instead of hard-failing when no token is configured.
+	if isLocal() || os.Getenv("AXIOM_TOKEN") == "" {
 		return consoleLogger(skipFrameCount)
 	}
 	return axiomLogger(skipFrameCount)
